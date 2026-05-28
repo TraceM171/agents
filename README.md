@@ -1,132 +1,69 @@
 # Agents Knowledge Template
 
-Standardized knowledge organization for agent-assisted development.
+Structured knowledge for agent-assisted development. Agents read this to understand your project, preferences, and conventions.
 
-## What This Is
-
-This repository provides a template for organizing agent knowledge bases in your projects. It ensures consistent, maintainable, and shareable knowledge across team members and agent sessions.
-
-## Quick Start
-
-### 1. Setup in Your Project
-
-Clone this repository somewhere on your system, then create hard links to `AGENTS.md` in each project's root:
+## Setup (2 minutes)
 
 ```bash
-# Clone to a permanent location
-git clone <this-repo-url> ~/path/to/agents-template
+# 1. Clone this template
+git clone <repo-url> ~/agents-template
 
-# In each project, create hard links:
-ln ~/path/to/agents-template/AGENTS.md ./AGENTS.md
-ln ~/path/to/agents-template/KNOWLEDGE_ORG.md ./KNOWLEDGE_ORG.md
-
-# Create knowledge directories
+# 2. In each project, create links and directories
+cd your-project
+ln ~/agents-template/AGENTS.md .
+ln ~/agents-template/KNOWLEDGE_ORG.md .
 mkdir -p knowledge knowledge.local
-```
 
-### 2. Initialize Knowledge Bases
-
-Create the required `_basic.md` files in each knowledge directory:
-
-```bash
-# knowledge/_basic.md — project-wide knowledge (shareable)
+# 3. Create required files
 touch knowledge/_basic.md
-
-# knowledge.local/_basic.md — personal preferences (not shared)
 touch knowledge.local/_basic.md
+
+# 4. Point your agent to AGENTS.md
 ```
 
-### 3. Configure Your Agent
+That's it. The agent will read the knowledge files on first start and follow the organization rules.
 
-Point your agent to read `AGENTS.md` at project root. The agent will:
-- Read `knowledge.local/_basic.md` and `knowledge/_basic.md` at first start
-- Discover available files in both knowledge directories
-- Follow the organization rules in `KNOWLEDGE_ORG.md`
-
-## Directory Structure
+## Knowledge Structure
 
 ```
-project_root/
-├── AGENTS.md           # Project agent configuration (hard link)
-├── KNOWLEDGE_ORG.md    # Organization rules (hard link)
-├── knowledge/          # Shared project knowledge
-│   ├── _basic.md       # Always read at start
-│   ├── auth/           # Authentication-related knowledge
-│   ├── ui/             # UI/UX related knowledge
-│   └── infra/          # Infrastructure knowledge
-└── knowledge.local/    # Personal user knowledge
-    ├── _basic.md       # Always read at start
-    └── preferences/    # User-specific settings
+knowledge/           # Shared project knowledge (git-tracked)
+  _basic.md          # Always read at start
+  auth/              # Authentication
+  infra/             # Infrastructure
+  ...
+
+knowledge.local/     # Personal preferences (typically gitignored)
+  _basic.md          # Always read at start
+  ...
 ```
 
-## Key Rules
+## Key Files
 
-1. **Never edit `AGENTS.md`** — it is the source of truth for agent configuration
-2. **Always read `KNOWLEDGE_ORG.md`** before modifying knowledge
-3. **Keep knowledge tidy** — no obsolete or superseded entries
-4. **Never use agent memories** — always persist information in knowledge folders
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Tells the agent where to find knowledge and rules |
+| `KNOWLEDGE_ORG.md` | How to organize new knowledge |
 
-## Skills
+## Rules
 
-### Reflect Skill
+1. Never edit `AGENTS.md` directly
+2. Read `KNOWLEDGE_ORG.md` before adding knowledge
+3. Don't use agent memories — use these folders
+4. Keep knowledge current — remove obsolete info
 
-The `reflect.md` file in this repository can be used as a skill in both Claude Code and OpenCode.
+## Reflect Skill
 
-**Setup the reflect skill:**
+Capture session learnings into the knowledge base.
 
+**Setup:**
 ```bash
-# For Claude Code
+# Claude Code
 mkdir -p .claude/skills/reflect
-ln ~/path/to/agents-template/reflect.md .claude/skills/reflect/SKILL.md
+ln ~/agents-template/reflect.md .claude/skills/reflect/SKILL.md
 
-# For OpenCode
+# OpenCode
 mkdir -p .opencode/skills/reflect
-ln ~/path/to/agents-template/reflect.md .opencode/skills/reflect/SKILL.md
+ln ~/agents-template/reflect.md .opencode/skills/reflect/SKILL.md
 ```
 
-**Usage:**
-- **Claude Code:** Invoke with `/reflect`
-- **OpenCode:** Use the `skill` tool to invoke the reflect skill
-
-The agent will review the conversation, identify learned information, and update the knowledge base accordingly.
-
-## Agent Setup
-
-Create the following in your project root:
-
-```bash
-# Create hard links to the template files
-ln ~/path/to/agents-template/AGENTS.md ./AGENTS.md
-ln ~/path/to/agents-template/KNOWLEDGE_ORG.md ./KNOWLEDGE_ORG.md
-
-# Create knowledge directories
-mkdir -p knowledge knowledge.local
-
-# Initialize required _basic.md files
-touch knowledge/_basic.md
-touch knowledge.local/_basic.md
-
-# Setup the reflect skill (optional)
-mkdir -p .claude/skills/reflect    # or .opencode/skills/reflect
-ln ~/path/to/agents-template/reflect.md .claude/skills/reflect/SKILL.md
-```
-
-**How it works:**
-
-| Agent | Skill Invocation | Auto-discovery |
-|-------|------------------|----------------|
-| Claude Code | `/reflect` | `.claude/skills/` |
-| OpenCode | `skill` tool | `.opencode/skills/` |
-
-Both agents automatically look for skills in their respective directories and read `knowledge/_basic.md` and `knowledge.local/_basic.md` at first start.
-
-## Workflow Summary
-
-| Action | Command/Step |
-|--------|--------------|
-| Setup new project | Create hard links + directories |
-| Capture session learning | Invoke `reflect.md` skill |
-| Add shared knowledge | Edit `knowledge/<topic>/` files |
-| Add personal knowledge | Edit `knowledge.local/<topic>/` files |
-| Update knowledge structure | Read `KNOWLEDGE_ORG.md` first |
-| Discover available knowledge | Agent runs `ls knowledge/` and `ls knowledge.local/` |
+**Use:** Say "reflect" or use the skill tool to invoke it.
