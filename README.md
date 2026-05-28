@@ -19,6 +19,9 @@ touch knowledge/_basic.md
 touch knowledge/.local/_basic.md
 
 # 4. Point your agent to AGENTS.md
+
+# For Claude Code: create CLAUDE.md link to AGENTS.md
+ln -s AGENTS.md CLAUDE.md
 ```
 
 That's it. The agent will read the knowledge files on first start and follow the organization rules.
