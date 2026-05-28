@@ -26,7 +26,7 @@ Review the conversation history and identify:
 
 For each piece of learned information:
 
-1. Read the relevant knowledge directory structure with `ls ./knowledge/` or `ls ./knowledge.local/`
+1. Read the relevant knowledge directory structure with `ls ./knowledge/` or `ls ./knowledge/.local/`
 2. Create files or subdirectories as needed (refer to `KNOWLEDGE_ORG.md` for structure rules)
 3. Append new information to the appropriate file
 4. If information is time-sensitive or experimental, mark it clearly

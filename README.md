@@ -12,11 +12,11 @@ git clone <repo-url> ~/agents-template
 cd your-project
 ln ~/agents-template/AGENTS.md .
 ln ~/agents-template/KNOWLEDGE_ORG.md .
-mkdir -p knowledge knowledge.local
+mkdir -p knowledge/.local
 
 # 3. Create required files
 touch knowledge/_basic.md
-touch knowledge.local/_basic.md
+touch knowledge/.local/_basic.md
 
 # 4. Point your agent to AGENTS.md
 ```
@@ -28,12 +28,10 @@ That's it. The agent will read the knowledge files on first start and follow the
 ```
 knowledge/           # Shared project knowledge (git-tracked)
   _basic.md          # Always read at start
+  .local/             # Personal preferences (typically gitignored)
+    _basic.md        # Always read at start
   auth/              # Authentication
   infra/             # Infrastructure
-  ...
-
-knowledge.local/     # Personal preferences (typically gitignored)
-  _basic.md          # Always read at start
   ...
 ```
 

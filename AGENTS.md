@@ -4,14 +4,7 @@
 
 ## Knowledge Base References
 
-This project uses two knowledge base directories:
-
-### @knowledge.local/
-
-- Location: `./knowledge.local/`
-- **Always read `@knowledge.local/_basic.md` at first start.**
-- Run `ls ./knowledge.local/` to discover available files.
-- Contains user-specific preferences and local knowledge not meant to be shared.
+This project uses a knowledge base directory at `./knowledge/`:
 
 ### @knowledge/
 
@@ -20,8 +13,14 @@ This project uses two knowledge base directories:
 - Run `ls ./knowledge/` to discover available files.
 - Contains project-wide knowledge shared among all developers.
 
+### @knowledge/.local/
+
+- Location: `./knowledge/.local/`
+- **Always read `@knowledge/.local/_basic.md` at first start.**
+- Contains user-specific preferences and local knowledge not meant to be shared.
+
 ## Important Rules
 
-- **Never use memories, nor other learning systems.** Always use the `@knowledge/` and `@knowledge.local/` folders for persistent information.
+- **Never use memories, nor other learning systems.** Always use the `@knowledge/` folders for persistent information.
 - **Before modifying knowledge**, read `KNOWLEDGE_ORG.md` to understand the organization rules.
 - Knowledge organization rules are defined in `KNOWLEDGE_ORG.md`.
