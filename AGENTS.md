@@ -6,11 +6,11 @@
 
 On first interaction, and whenever context is unclear:
 
-1. `knowledge/_basic.md` — project index
-2. `knowledge/status.md` — current state of the system
+1. `@knowledge/_basic.md` — project index
+2. `@knowledge/status.md` — current state of the system
 3. The `_basic.md` in the relevant subdirectory (e.g. `knowledge/services/_basic.md`)
 4. The specific files relevant to the task
-5. `knowledge/.local/_basic.md` — owner-specific context
+5. `@knowledge/.local/_basic.md` — owner-specific context
 
 ## Modifying knowledge
 
