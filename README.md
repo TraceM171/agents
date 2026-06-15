@@ -68,3 +68,20 @@ ln ~/agents-template/reflect.md .opencode/skills/reflect/SKILL.md
 ```
 
 **Use:** Say "reflect" or use the skill tool to invoke it.
+
+## Handoff Skill
+
+Generate a copy-pasteable handoff prompt summarizing the current session for the next one.
+
+**Setup:**
+```bash
+# Claude Code
+mkdir -p .claude/skills/handoff
+ln ~/agents-template/handoff.md .claude/skills/handoff/SKILL.md
+
+# OpenCode
+mkdir -p .opencode/skills/handoff
+ln ~/agents-template/handoff.md .opencode/skills/handoff/SKILL.md
+```
+
+**Use:** Say "handoff" or "wrap up" or use the skill tool to invoke it.
