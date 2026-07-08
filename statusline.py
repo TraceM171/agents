@@ -29,6 +29,11 @@ if isinstance(model_obj, dict):
 else:
     friendly = str(model_obj)
 
+max_ctx = ctx.get("context_window_size")
+if max_ctx:
+    size_str = f"{max_ctx // 1_000_000}M" if max_ctx >= 1_000_000 else f"{max_ctx // 1000}k"
+    friendly = f"{friendly} ({size_str})"
+
 effort_obj = data.get("effort")
 if isinstance(effort_obj, dict) and effort_obj.get("level"):
     friendly = f"{friendly} [{effort_obj['level']}]"
