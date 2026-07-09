@@ -104,8 +104,8 @@ if git_info:
     branch, b_added, b_removed, unpushed = git_info
     dirty = bool(b_added or b_removed)
     dot = Y if dirty else C if unpushed else G
-    branch_stats = f"{DIM}branch {RESET}{DIM}+{b_added} -{b_removed}{RESET}"
-    git_str = f"{dot}●{RESET} {branch}{SEP}{branch_stats}"
+    branch_stats = f"{DIM}branch {RESET}\033[1m+{b_added} -{b_removed}{RESET}"
+    git_str = f"{dot}●{RESET} \033[1m{branch}{RESET}{SEP}{branch_stats}"
 
 # Lines added/removed this session (whole session, not knowledge-scoped)
 cost = data.get("cost", {})
@@ -207,14 +207,14 @@ if kn is not None:
     activity_trigger = tool_calls >= 25 and duration_min >= 15
     if not reflected and (edits_trigger or activity_trigger):
         reasons = "+".join(r for r, on in (("edits", edits_trigger), ("activity", activity_trigger)) if on)
-        kn_str += SEP + italic(f"{Y}●{RESET} {DIM}reflect? ({reasons}){RESET}")
+        kn_str += SEP + italic(f"{Y}●{RESET} \033[1mreflect?{RESET} {DIM}({reasons}){RESET}")
 
     cwd = data.get("cwd") or data.get("workspace", {}).get("current_dir")
     cur = curate_signal(cwd, knowledge_dir, total_files) if cwd else None
     if cur is not None:
         changed_count, curate_trigger = cur
         if curate_trigger:
-            kn_str += f"{SEP}{Y}●{RESET} {DIM}curate? ({changed_count} files){RESET}"
+            kn_str += f"{SEP}{Y}●{RESET} \033[1mcurate?{RESET} {DIM}({changed_count} files){RESET}"
 
 git_line_parts = [p for p in [git_str, lines_str] if p]
 status_parts = [ctx_str, model_str] + rl_parts
