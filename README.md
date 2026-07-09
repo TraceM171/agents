@@ -10,9 +10,11 @@ Per-tool integrations live in their own top-level folder (`claude_code/` today; 
 
 ```bash
 claude
-/plugin marketplace add ~/agents-template
+/plugin marketplace add TraceM171/agents
 /plugin install agents-knowledge@agents-marketplace
 ```
+
+(Testing a local clone before pushing? Use the local path instead: `/plugin marketplace add ~/agents-template`.)
 
 Installs the `reflect`, `curate`, `handoff`, and `knowledge-org` skills, plus a `SessionStart` hook. The install prompt asks for a scope — pick **project** (writes to that repo's `.claude/settings.json`, committed, shared with collaborators) if you only want this active in specific repos; **user** installs it globally across every project you open.
 
@@ -22,7 +24,7 @@ Either way, the hook only acts in projects that already have a `knowledge/` dire
 mkdir knowledge
 ```
 
-Next session, the hook bootstraps `knowledge/.local/_basic.md` etc. automatically and injects `AGENTS.md`'s rules into context. The status line still needs manual setup below — plugins can't configure `statusLine`.
+Next session, the hook bootstraps `knowledge/.local/_basic.md` etc. automatically, and injects `AGENTS.md`'s rules plus `knowledge/_basic.md`, `knowledge/.local/_basic.md`, and `knowledge/status.md` (whichever exist) into context. The status line still needs manual setup below — plugins can't configure `statusLine`.
 
 ### Option B: Manual
 
