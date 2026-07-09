@@ -17,7 +17,7 @@ This is a heavier operation than reflect: expect to read every file in the tree,
 
 ### 1. Read the rules in full
 
-Read `KNOWLEDGE_ORG.md` and `AGENTS.md` in full before touching anything. Every judgment made later in this workflow is a rule from `KNOWLEDGE_ORG.md` applied to a specific file — do not rely on memory of the rules.
+Read `KNOWLEDGE_ORG.md` in full before touching anything — invoke the `knowledge-org` skill if available, otherwise read the file directly. `AGENTS.md`'s rules are already in context (injected at session start when running via the Claude Code plugin; read the file directly otherwise). Every judgment made later in this workflow is a rule from `KNOWLEDGE_ORG.md` applied to a specific file — do not rely on memory of the rules.
 
 ### 2. Inventory the entire tree
 

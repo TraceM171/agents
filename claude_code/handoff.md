@@ -53,7 +53,7 @@ Write a tight, copy-pasteable prompt. Target medium-small — long enough to be 
 - <open question or blocker>
 
 ## Start
-Read AGENTS.md and the @-pointers above, then resume at "Next".
+Read AGENTS.md (if not already in context) and the @-pointers above, then resume at "Next".
 ```
 
 Prefer this shape, but adjust section names to fit the work. Keep it pointer-heavy: inline detail only when there is no knowledge file to point at.

@@ -1,0 +1,11 @@
+{
+  "name": "agents-knowledge",
+  "displayName": "Agents Knowledge",
+  "version": "0.1.0",
+  "description": "Knowledge-tree conventions, reflect/curate/handoff skills, and a status line for Claude Code.",
+  "author": {
+    "name": "TraceM171"
+  },
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}

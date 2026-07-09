@@ -1,3 +1,8 @@
+---
+name: knowledge-org
+description: Organization rules for the knowledge/ tree — the five kinds of knowledge, directory structure, naming, and when to restructure. Use before creating, moving, or restructuring any file under knowledge/.
+---
+
 # Knowledge Organization Rules
 
 This document defines how to organize knowledge directories so they stay navigable, current, and free of duplication over the life of a project. The rules target the failure modes that appear in long-lived, single-developer projects: mega-files, status rot, misplaced content, and duplicated facts.

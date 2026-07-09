@@ -2,7 +2,29 @@
 
 Structured knowledge for agent-assisted development. Agents read this to understand your project, preferences, and conventions.
 
-## Setup (2 minutes)
+Per-tool integrations live in their own top-level folder (`claude_code/` today; more may be added later). Each folder holds real, tool-specific copies of the conventions — not shared across tools — so each integration can be adapted to what that tool actually supports.
+
+## Setup — Claude Code
+
+### Option A: Plugin (recommended)
+
+```bash
+claude
+/plugin marketplace add ~/agents-template
+/plugin install agents-knowledge@agents-marketplace
+```
+
+Installs the `reflect`, `curate`, `handoff`, and `knowledge-org` skills, plus a `SessionStart` hook. The install prompt asks for a scope — pick **project** (writes to that repo's `.claude/settings.json`, committed, shared with collaborators) if you only want this active in specific repos; **user** installs it globally across every project you open.
+
+Either way, the hook only acts in projects that already have a `knowledge/` directory — it's a complete no-op everywhere else, so a global install won't inject anything or create files in unrelated repos. To adopt the template in a project:
+
+```bash
+mkdir knowledge
+```
+
+Next session, the hook bootstraps `knowledge/.local/_basic.md` etc. automatically and injects `AGENTS.md`'s rules into context. The status line still needs manual setup below — plugins can't configure `statusLine`.
+
+### Option B: Manual
 
 ```bash
 # 1. Clone this template
@@ -10,17 +32,12 @@ git clone <repo-url> ~/agents-template
 
 # 2. In each project, create links and directories
 cd your-project
-ln ~/agents-template/AGENTS.md .
-ln ~/agents-template/KNOWLEDGE_ORG.md .
+ln ~/agents-template/claude_code/AGENTS.md .
+ln ~/agents-template/claude_code/KNOWLEDGE_ORG.md .
 mkdir -p knowledge/.local
+touch knowledge/_basic.md knowledge/.local/_basic.md
 
-# 3. Create required files
-touch knowledge/_basic.md
-touch knowledge/.local/_basic.md
-
-# 4. Point your agent to AGENTS.md
-
-# For Claude Code: create CLAUDE.md link to AGENTS.md
+# 3. Point Claude Code at AGENTS.md
 ln -s AGENTS.md CLAUDE.md
 ```
 
@@ -42,8 +59,8 @@ knowledge/           # Shared project knowledge (git-tracked)
 
 | File | Purpose |
 |------|---------|
-| `AGENTS.md` | Tells the agent where to find knowledge and rules |
-| `KNOWLEDGE_ORG.md` | How to organize new knowledge |
+| `claude_code/AGENTS.md` | Tells the agent where to find knowledge and rules |
+| `claude_code/KNOWLEDGE_ORG.md` | How to organize new knowledge |
 
 ## Rules
 
@@ -54,45 +71,60 @@ knowledge/           # Shared project knowledge (git-tracked)
 
 ## Reflect Skill
 
-Capture session learnings into the knowledge base.
+Capture session learnings into the knowledge base. Included in the Claude Code plugin (Option A above).
 
-**Setup:**
+**Manual setup:**
 ```bash
 # Claude Code
 mkdir -p .claude/skills/reflect
-ln ~/agents-template/reflect.md .claude/skills/reflect/SKILL.md
+ln ~/agents-template/claude_code/reflect.md .claude/skills/reflect/SKILL.md
 
 # OpenCode
 mkdir -p .opencode/skills/reflect
-ln ~/agents-template/reflect.md .opencode/skills/reflect/SKILL.md
+ln ~/agents-template/claude_code/reflect.md .opencode/skills/reflect/SKILL.md
 ```
 
 **Use:** Say "reflect" or use the skill tool to invoke it.
 
 ## Curate Skill
 
-Reflect's big brother. Thorough, whole-tree audit and cleanup of the knowledge base — run it much less often than reflect, once knowledge has degraded across many reflect runs (duplication, mega-files, misplaced content). Has authority to fully restructure the tree to conform to `KNOWLEDGE_ORG.md`.
+Reflect's big brother. Thorough, whole-tree audit and cleanup of the knowledge base — run it much less often than reflect, once knowledge has degraded across many reflect runs (duplication, mega-files, misplaced content). Has authority to fully restructure the tree to conform to `KNOWLEDGE_ORG.md`. Included in the Claude Code plugin (Option A above).
 
-**Setup:**
+**Manual setup:**
 ```bash
 # Claude Code
 mkdir -p .claude/skills/curate
-ln ~/agents-template/curate.md .claude/skills/curate/SKILL.md
+ln ~/agents-template/claude_code/curate.md .claude/skills/curate/SKILL.md
 
 # OpenCode
 mkdir -p .opencode/skills/curate
-ln ~/agents-template/curate.md .opencode/skills/curate/SKILL.md
+ln ~/agents-template/claude_code/curate.md .opencode/skills/curate/SKILL.md
 ```
 
 **Use:** Say "curate" or use the skill tool to invoke it. Prefer your strongest available model — this is a careful, thorough pass, not a fast one.
 
+## Knowledge-Org Skill
+
+`KNOWLEDGE_ORG.md` packaged as an on-demand skill, so it can be pulled into context whenever the agent is creating, moving, or restructuring knowledge files — not just during reflect/curate. Included in the Claude Code plugin (Option A above).
+
+**Manual setup:**
+```bash
+# Claude Code
+mkdir -p .claude/skills/knowledge-org
+ln ~/agents-template/claude_code/KNOWLEDGE_ORG.md .claude/skills/knowledge-org/SKILL.md
+
+# OpenCode
+mkdir -p .opencode/skills/knowledge-org
+ln ~/agents-template/claude_code/KNOWLEDGE_ORG.md .opencode/skills/knowledge-org/SKILL.md
+```
+
 ## Status Line
 
-`statusline.py` — Claude Code status line script (context %, model, rate-limit countdowns).
+`claude_code/statusline.py` — Claude Code status line script (knowledge-tree activity with reflect/curate nudges, git branch/session diffs, context %, model, rate-limit countdowns). Not installable via the plugin — `statusLine` is a user-level setting only.
 
 **Setup:**
 ```bash
-ln -s ~/agents-template/statusline.py ~/.claude/statusline.py
+ln -s ~/agents-template/claude_code/statusline.py ~/.claude/statusline.py
 ```
 
 Then in `~/.claude/settings.json`:
@@ -106,17 +138,17 @@ Then in `~/.claude/settings.json`:
 
 ## Handoff Skill
 
-Generate a copy-pasteable handoff prompt summarizing the current session for the next one.
+Generate a copy-pasteable handoff prompt summarizing the current session for the next one. Included in the Claude Code plugin (Option A above).
 
-**Setup:**
+**Manual setup:**
 ```bash
 # Claude Code
 mkdir -p .claude/skills/handoff
-ln ~/agents-template/handoff.md .claude/skills/handoff/SKILL.md
+ln ~/agents-template/claude_code/handoff.md .claude/skills/handoff/SKILL.md
 
 # OpenCode
 mkdir -p .opencode/skills/handoff
-ln ~/agents-template/handoff.md .opencode/skills/handoff/SKILL.md
+ln ~/agents-template/claude_code/handoff.md .opencode/skills/handoff/SKILL.md
 ```
 
 **Use:** Say "handoff" or "wrap up" or use the skill tool to invoke it.

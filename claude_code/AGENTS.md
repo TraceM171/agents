@@ -31,7 +31,7 @@ The knowledge tree (`knowledge/**`, governed by `KNOWLEDGE_ORG.md`) is the singl
 
 ## Editing knowledge — `KNOWLEDGE_ORG.md` is mandatory reading first
 
-**Read `KNOWLEDGE_ORG.md` in full before any edit to the knowledge tree.** This is mandatory, not optional. Triggers (any of these means you must read it first):
+**Read `KNOWLEDGE_ORG.md` in full before any edit to the knowledge tree.** Invoke the `knowledge-org` skill if available, otherwise read the file directly. This is mandatory, not optional. Triggers (any of these means you must read it first):
 
 - Adding a new file
 - Moving, renaming, or deleting a file
