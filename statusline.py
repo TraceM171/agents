@@ -9,7 +9,14 @@ except Exception:
 
 G, Y, R, C, RESET = "\033[92m", "\033[93m", "\033[91m", "\033[96m", "\033[0m"
 DIM = "\033[2m"
+ITALIC = "\033[3m"
 SEP = f"{DIM} · {RESET}"
+
+# Marks a segment as session-scoped — italic, meaning "resets/changes on a new Claude session"
+# (context %, session line-diff, knowledge read/edit counts, reflect nudge) as opposed to
+# persistent environment/repo state (git branch, model choice, rate limits, curate nudge).
+def italic(s):
+    return ITALIC + s.replace(RESET, RESET + ITALIC) + RESET
 
 def remaining_dot_color(remaining_pct):
     return G if remaining_pct > 50 else Y if remaining_pct > 20 else R
@@ -20,7 +27,7 @@ def used_dot_color(used_pct):
 # Context dot — green < 50%, yellow < 80%, red >= 80%
 ctx = data.get("context_window", {})
 pct = ctx.get("used_percentage") or 0
-ctx_str = f"{used_dot_color(pct)}●{RESET}\033[1m {pct:.0f}%{RESET}"
+ctx_str = italic(f"{used_dot_color(pct)}●{RESET}\033[1m {pct:.0f}%{RESET}")
 
 # Friendly model name from statusline JSON's display_name field
 model_obj = data.get("model", {})
@@ -105,7 +112,7 @@ cost = data.get("cost", {})
 added, removed = cost.get("total_lines_added"), cost.get("total_lines_removed")
 lines_str = None
 if added is not None or removed is not None:
-    lines_str = f"{DIM}session {RESET}\033[1m+{added or 0} -{removed or 0}{RESET}"
+    lines_str = italic(f"{DIM}session {RESET}\033[1m+{added or 0} -{removed or 0}{RESET}")
 
 # Knowledge-tree activity this session — knowledge/**.md files read vs edited, as % of the tree.
 # Also scans for reflect-nudge signals: non-knowledge edits (code changed, not captured) and
@@ -189,8 +196,8 @@ if kn is not None:
     knowledge_dir, n_read, n_edit, total_files, n_non_kn_edit, tool_calls, reflected = kn
     read_pct = (n_read / total_files * 100) if total_files else 0
     edit_pct = (n_edit / total_files * 100) if total_files else 0
-    read_part = f"\033[1m{n_read}{RESET}{DIM} read ({RESET}\033[1m{read_pct:.0f}%{RESET}{DIM}){RESET}"
-    edit_part = f"\033[1m{n_edit}{RESET}{DIM} edited ({RESET}\033[1m{edit_pct:.0f}%{RESET}{DIM}){RESET}"
+    read_part = italic(f"\033[1m{n_read}{RESET}{DIM} read ({RESET}\033[1m{read_pct:.0f}%{RESET}{DIM}){RESET}")
+    edit_part = italic(f"\033[1m{n_edit}{RESET}{DIM} edited ({RESET}\033[1m{edit_pct:.0f}%{RESET}{DIM}){RESET}")
     kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part])
 
     # Reflect nudge — code changed (>=3 non-knowledge files) or a long investigation
@@ -200,7 +207,7 @@ if kn is not None:
     activity_trigger = tool_calls >= 25 and duration_min >= 15
     if not reflected and (edits_trigger or activity_trigger):
         reasons = "+".join(r for r, on in (("edits", edits_trigger), ("activity", activity_trigger)) if on)
-        kn_str += f"{SEP}{Y}●{RESET} {DIM}reflect? ({reasons}){RESET}"
+        kn_str += SEP + italic(f"{Y}●{RESET} {DIM}reflect? ({reasons}){RESET}")
 
     cwd = data.get("cwd") or data.get("workspace", {}).get("current_dir")
     cur = curate_signal(cwd, knowledge_dir, total_files) if cwd else None
