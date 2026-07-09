@@ -69,6 +69,23 @@ ln ~/agents-template/reflect.md .opencode/skills/reflect/SKILL.md
 
 **Use:** Say "reflect" or use the skill tool to invoke it.
 
+## Curate Skill
+
+Reflect's big brother. Thorough, whole-tree audit and cleanup of the knowledge base — run it much less often than reflect, once knowledge has degraded across many reflect runs (duplication, mega-files, misplaced content). Has authority to fully restructure the tree to conform to `KNOWLEDGE_ORG.md`.
+
+**Setup:**
+```bash
+# Claude Code
+mkdir -p .claude/skills/curate
+ln ~/agents-template/curate.md .claude/skills/curate/SKILL.md
+
+# OpenCode
+mkdir -p .opencode/skills/curate
+ln ~/agents-template/curate.md .opencode/skills/curate/SKILL.md
+```
+
+**Use:** Say "curate" or use the skill tool to invoke it. Prefer your strongest available model — this is a careful, thorough pass, not a fast one.
+
 ## Status Line
 
 `statusline.py` — Claude Code status line script (context %, model, rate-limit countdowns).

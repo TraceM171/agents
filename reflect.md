@@ -41,6 +41,7 @@ After updating knowledge, provide a brief summary:
 - What new information was captured
 - Where it was stored
 - Any gaps or uncertainties noted
+- If while reading/writing you noticed substantial `KNOWLEDGE_ORG.md` deviations beyond this session's own edits — duplication, mega-files, misplaced content, missing `_basic.md`s, mixed kinds — flag it and suggest the user run `curate` for a full audit/cleanup. A file or two slightly off doesn't warrant this; a pattern across the tree does.
 
 ## Important Notes
 
