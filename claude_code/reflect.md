@@ -20,8 +20,8 @@ Knowledge should already be captured inline as work happens, per AGENTS.md's "Ca
 Before hunting for gaps, check what already got written live this session for the mistakes `reflect` exists to catch in aggregate — but scoped cheaply to just this session's diff:
 
 1. `git diff` / `git status` restricted to `knowledge/**`, limited to files this session actually touched.
-2. For each changed file, ask: does this same fact also appear somewhere else now (duplication)? Did a `status.md` "recent changes" entry grow past one line into a full write-up that belongs in a per-X file or a dated audit instead (see `KNOWLEDGE_ORG.md`'s "Recent-changes entries are pointers, not records")?
-3. Fix what's found now — trim the status.md entry to a line + link, move the narrative to its canonical home — rather than leaving it for the next `curate`.
+2. For each changed file, ask: does this same fact also appear somewhere else now (duplication)? Did a `status.md` "recent changes" entry grow past one line into a full write-up that belongs in a per-X file or a dated audit instead (see `KNOWLEDGE_ORG.md`'s "Recent-changes entries are pointers, not records")? Did an Open/backlog entry turn into an ordered or cross-domain plan sitting inline instead of being extracted to `phases.md`/`<domain>/plan.md` (see "Open entries are pointers, not plans")?
+3. Fix what's found now — trim the status.md entry to a line + link, move the narrative to its canonical home, extract a plan that outgrew the Open section — rather than leaving it for the next `curate`.
 4. This is a small, session-scoped check. It does not replace `curate`, which still audits the whole tree for drift accumulated across sessions.
 
 ### 2. Identify Learned Information

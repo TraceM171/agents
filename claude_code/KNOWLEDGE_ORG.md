@@ -25,7 +25,7 @@ Subdirectories hold related files on a single topic. Do not nest deeper than one
 
 - `kebab-case.md` (e.g. `auth-pattern.md`, not `Auth_Pattern.md`).
 - Dated files use the format `YYYY-MM[-descriptor].md` (e.g. `audit-2026-06.md`, `incident-2025-11-payment-outage.md`).
-- Reserved names: `_basic.md` (index), `status.md` (current state), `_curated.md` (top level only — single-line date marker written by the curate skill, read by tooling; not one of the five kinds, exempt from kind-purity checks). Do not use these for other purposes.
+- Reserved names: `_basic.md` (index), `status.md` (current state), `_curated.md` (top level only — single-line date marker written by the curate skill, read by tooling; not one of the five kinds, exempt from kind-purity checks), `phases.md` (top level only — cross-domain ordered plan) and `plan.md` (domain-scoped ordered plan) — see "Open entries are pointers, not plans" below. Do not use these for other purposes.
 - No version suffixes (`-v2`, `-final`, `-new`). If a file replaces another, delete the old one and let git history show the change.
 
 ## The five kinds of knowledge
@@ -35,9 +35,9 @@ Every file in the knowledge tree should be one of five kinds. The kind determine
 | Kind | Definition | Update cadence | Primary reader | Example |
 |------|------------|----------------|----------------|---------|
 | **Index** | Pointer to other files; "what lives where" and "read in this order" | When structure changes | First read of a session | `knowledge/_basic.md`, `services/_basic.md` |
-| **Status** | Current state of the system: what is deployed, what is in flight, what changed recently | Updated on every change | Every read | `knowledge/status.md` |
+| **Status** | Current state of the system: what is deployed/published, what is in flight, what changed recently | Updated on every change | Every read | `knowledge/status.md` |
 | **Model** | Ongoing reference: how the system is built, the design as it stands today | When the design changes | When working on the topic | `security/model.md`, `architecture/decisions.md` |
-| **Audit** | Dated historical record of a specific investigation, decision, or incident | Append-only after closure | When the date is referenced | `security/audit-2026-06.md`, `operations/incident-2025-11-04.md` |
+| **Audit** | Dated historical record of a specific investigation, decision, or incident | Append-only after closure | When the date is referenced | `security/audit-2026-06.md`, `operations/incident-2025-11-04.md`, `bugs/audit-2026-06.md` |
 | **Pattern** | Reusable recipe: how to do X with the system, the steps a future task should follow | When a better way is found | When applying the pattern | `security/patterns.md`, `operations/runbooks.md` |
 
 A file that does not fit one of these is either misplaced or the taxonomy is missing a kind. **Do not create a sixth kind to dodge the rule** — refine the taxonomy instead.
@@ -92,7 +92,7 @@ The files at the top of the knowledge tree are the only ones read by every sessi
 - `_basic.md` — the project index
 - `status.md` — current state of the system
 - `requirements.md` — what the project is for and what it is not (optional)
-- `phases.md` — the deployment or delivery roadmap (optional)
+- `phases.md` — a cross-domain ordered plan (optional; created only when one exists — see "Open entries are pointers, not plans")
 - `stack.md` — the chosen tools and why (optional)
 
 If you find yourself adding a new top-level file, ask: **which domain does it belong to?** If the answer is "none, it's its own thing", the project probably needs a new domain, not a new top-level file.
@@ -112,7 +112,7 @@ When a project has many instances of a thing — services, components, integrati
 
 Examples of the per-X convention:
 
-- `services/<name>.md` — one file per running service
+- `services/<name>.md` — one file per running service (or `libraries/<name>.md` — one file per published package, for a project with no running services)
 - `integrations/<name>.md` — one file per third-party integration
 - `infrastructure/<env>.md` — one file per environment
 - `components/<name>.md` — one file per internal component
@@ -127,8 +127,8 @@ A per-X file has a documented structure so the reader knows where to look. Every
 
 1. **Identity** — name, version, location, owner
 2. **Purpose** — one paragraph: what this thing does and why it exists
-3. **Configuration** — how it is set up (auth, network, data, environment, dependencies)
-4. **Operations** — useful commands, runbooks, monitoring, alerts
+3. **Configuration** — how it is set up (auth, network, data, environment, dependencies — or, for a pure code component, its props/API surface and build config)
+4. **Operations** — useful commands, runbooks, monitoring, alerts (or, for a library, usage examples and common pitfalls)
 5. **History** — pointers to dated records (audits, decisions, incidents) that affect it
 
 A per-X file does not duplicate its domain's model — it references the model and adds the per-X details.
@@ -168,6 +168,22 @@ When a fact in one file is relevant to another, link to the canonical source. Do
 A `status.md` "recent changes" entry is one line: what changed, and a link to where the full record lives. It is not the record itself. If a change needs more than a line to explain — root cause, evidence, verification steps — that detail belongs in the per-X file's current-state content (if it's a design/config fact) or a dated audit (if it's a historical incident), never written out inline in `status.md`. A status entry that has grown into a paragraph is a sign the fact was captured in the wrong place, not that status.md needed a bigger entry.
 
 This matters most for facts captured live, mid-task, rather than during a dedicated `reflect`/`curate` pass — see `AGENTS.md`'s "Capture as you go" for the live-capture discipline this enables.
+
+### Open entries are pointers, not plans
+
+The twin problem to the one above, on the forward-looking side: the Status kind's own definition includes "what is in flight," which is broad enough to also absorb a multi-step, multi-session plan if nobody stops it. `status.md`'s Open section (or a domain's own backlog) holds only atomic, independent line items — one line each, pointer-only, no sub-steps. It is not the place for an ordered, multi-step initiative.
+
+Extract to a dedicated plan file the moment any of these is true, regardless of how few items exist so far:
+
+- the items have an internal order or dependency (step 2 can't start before step 1 finishes) — an ordered plan, not a queue
+- the work touches more than one domain or per-X instance
+- the list has grown past roughly 5–7 open items with no end in sight
+
+A queue of independent, same-shaped items scoped to one domain ("install these N apps, any order, one per session") is *not* a plan under this rule — it stays a flat checklist, one line per item, checked off and linked to the resulting per-X file once done.
+
+Where the extracted plan goes: cross-domain → top-level `phases.md`. Single-domain → `<domain>/plan.md`. Both are still Status-kind content — same update cadence, same "every read" audience — just scoped differently from `status.md` itself, the same way a domain's `_basic.md` is still an index despite not being the top-level one.
+
+A plan file has a fixed shape: a one-line goal, ordered phases each carrying a status marker (done / in-progress / pending), a pointer to fuller detail (a per-X file, a dated audit) where one exists, and the current phase called out explicitly enough that a resuming session can tell where things stand from a single read. On completion: write one final pointer line into `status.md`, then delete the plan file — git history keeps the record. A fully-resolved plan is no longer current state, and a kind that never drains anything is the wrong home for it.
 
 ### Dated files are append-only
 
@@ -236,6 +252,7 @@ A restructuring is the wrong time to:
 | Patterns are recipes, not design | Models that conflate "what" with "how" |
 | No duplication; link, do not restate | Two files claiming to be the truth |
 | Recent-changes entries are pointers, not records | `status.md` bloating into a de facto changelog/audit |
+| Open entries are pointers, not plans | `status.md`/backlogs silently absorbing multi-step, multi-session initiatives |
 | Top-level is cross-cutting only | Top-level becomes a junk drawer |
 | Per-X convention for collections of instances | The mega-file-that-grows failure mode |
 | Per-X files have a documented structure | Inconsistent per-instance docs |

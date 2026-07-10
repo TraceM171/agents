@@ -46,7 +46,7 @@ The knowledge tree (`knowledge/**`, governed by `KNOWLEDGE_ORG.md`) is the singl
 - Moving, renaming, or deleting a file
 - Restructuring a domain (split, merge, promote top-level → domain, etc.)
 - Changing the kind of a file (e.g. promoting status content into a model)
-- Appending a substantial new entry to an existing file — a new incident write-up, a new gotcha, a multi-line narrative. (A single-value edit — bumping a version, flipping a flag, fixing a typo — does not require a re-read.) This is the trigger most often missed: editing an *existing* file doesn't look like "adding" or "restructuring," but a paragraph-sized addition is exactly where duplication and kind-mixing creep in.
+- Appending a substantial new entry to an existing file — a new incident write-up, a new gotcha, a multi-line narrative, a growing Open/backlog entry. (A single-value edit — bumping a version, flipping a flag, fixing a typo — does not require a re-read.) This is the trigger most often missed: editing an *existing* file doesn't look like "adding" or "restructuring," but a paragraph-sized addition is exactly where duplication and kind-mixing creep in.
 
 Why hard: the rules (five kinds, per-X convention, no top-level cruft, no duplication, models contain no state / no history / no recipes) are what keep the tree navigable as it grows. Guessing the rules produces drift, and drift eventually forces a full rewrite. A 5-minute read of `KNOWLEDGE_ORG.md` prevents that.
 
@@ -59,3 +59,4 @@ Quick reminder (still read the full file before editing):
 - Model files contain no dates, no state, no history, no recipes — link instead.
 - Status lives only in `status.md`. Audits are dated and append-only. Patterns are recipes, not design.
 - Link, do not restate. If a fact appears in two files, one of them is wrong.
+- Open/backlog entries are pointers too — ordered or cross-domain work goes in `phases.md`/`<domain>/plan.md`, not inline in `status.md`.
