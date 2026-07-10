@@ -1,10 +1,10 @@
 # Status — Current State
 
-**As of 2026-07-10.**
+**As of 2026-07-11.**
 
 ## Current version
 
-`0.1.9` (`claude_code/.claude-plugin/plugin.json`), pushed to `origin/main` (`85fe55a`). Marketplace: `arwyl-lite-marketplace` → GitHub `TraceM171/arwyl-lite`.
+`0.1.10` (`claude_code/.claude-plugin/plugin.json`), pushed to `origin/main` (`efd5ed9`). Marketplace: `arwyl-lite-marketplace` → GitHub `TraceM171/arwyl-lite`.
 
 (The push to get `0.1.7` out briefly failed — SSH agent couldn't sign with the hardware key, "agent refused operation" — retried clean once the key was touched; every version since has pushed normally.)
 
@@ -18,6 +18,7 @@ Manual semver bump is still required for any consumer's cached copy to refresh �
 
 ## Recent changes
 
+- **`efd5ed9`** — added `KNOWLEDGE_ORG.md`'s "Open entries are pointers, not plans" rule (formalizes `phases.md`/`<domain>/plan.md` as the extraction target for multi-step, multi-session plans that don't belong in `status.md`'s Open section) and de-biased infra-only wording/examples across `KNOWLEDGE_ORG.md`, `AGENTS.md`, `reflect.md`, `curate.md`. Bumped to 0.1.10.
 - **`85fe55a`** — dirtiness was sitting as a third independent knowledge stat (`read` / `edited` / `dirty`), separate from the reflect nudge that uses the same number — merged into one always-visible segment, `reflect: N dirty (Y%)`, upgrading to `● reflect? N dirty (Y%) (reasons)` when a trigger fires. The dirty count is now clickable too, linking into the knowledge page's existing `Edited` section (not a new one) — dirty files get an inline `dirty` badge there instead of their own list. Bumped to 0.1.9.
 - **`0e783e3`** — the real, final fix for sanctum's "reflect nudge won't clear" — `e0219f6` (below) was necessary but not sufficient. Tool results come back as `type:"user"` too (every tool call reflect itself makes — its own `Edit`/`Write` calls — gets an immediate `type:"user"` tool_result entry), and a slash-command invocation is actually *two* synthetic entries: the `<command-name>` marker, immediately followed by a second `type:"user"` entry containing the expanded skill prompt text (`isMeta: true`). The boundary logic treated either as "the next real user turn," closing the boundary one line after the invocation — before reflect had done any of its own work — so reflect's own edits counted as "since last reflect" every time. Now skips both tool-result-only and `isMeta` entries; if nothing else appears before EOF (reflect was the literal last thing that ran), the boundary closes at end-of-file. Reverified against `f954ac2a...`: edited-since-reflect goes `8/8` → `0/8` (matches "reflect was the last thing that ran"); the earlier `4/8` from `e0219f6` was itself still wrong, just less wrong. Regression-tested the inverse with a synthetic transcript too — a genuine post-reflect edit still correctly flags as dirty. Bumped to 0.1.8.
 - **`e0219f6`** — 0.1.6's namespacing fix wasn't the whole story: when a user directly types `/reflect` (or `/arwyl-lite:reflect`), Claude Code never emits an assistant `Skill` tool_use at all — it's a `"user"`-type transcript entry whose content is a literal string containing `<command-name>/arwyl-lite:reflect</command-name>`. The boundary logic only recognized the tool_use form, so a user-typed `/reflect` was completely invisible to it. This closed *that* gap but left a second one (see `0e783e3` above) — landed on `8/8` → `4/8`, which looked plausible but was still wrong. Bumped to 0.1.7.

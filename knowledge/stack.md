@@ -6,6 +6,7 @@ Chosen approach for distributing and versioning Arwyl Lite, and why. This is des
 
 - **Five kinds of knowledge**: index / status / model / audit / pattern (`claude_code/KNOWLEDGE_ORG.md`) — the core taxonomy the whole system is built around.
 - **Per-X convention**: one file per instance (service, integration, consumer, etc.) for any collection that would otherwise become a mega-file.
+- **`phases.md` / `<domain>/plan.md`**: reserved Status-kind files for a multi-step, multi-session plan that has outgrown `status.md`'s Open section — see `KNOWLEDGE_ORG.md`'s "Open entries are pointers, not plans".
 
 ## Distribution
 
