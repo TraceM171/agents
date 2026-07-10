@@ -104,6 +104,8 @@ PAGE_SHELL = """<!doctype html>
   .path {{ background: #f2f2f2; padding: 0.1rem 0.4rem; border-radius: 4px;
            font-family: ui-monospace, monospace; font-size: 0.85rem; }}
   .stat {{ font-family: ui-monospace, monospace; font-size: 0.85rem; color: #888; white-space: nowrap; }}
+  .dirty-badge {{ font-size: 0.75rem; font-weight: 600; color: #9a6700; background: #fff8c5;
+                   padding: 0.05rem 0.45rem; border-radius: 4px; white-space: nowrap; }}
   .empty {{ color: #888; font-style: italic; }}
   summary {{ display: flex; justify-content: space-between; gap: 1rem; cursor: pointer; }}
   summary::marker {{ color: #888; }}
@@ -121,6 +123,7 @@ PAGE_SHELL = """<!doctype html>
     .d-del {{ color: #ff9492; background: #4a1210; }}
     .d-hunk {{ color: #c297ff; }}
     .d-ctx {{ color: #9198a1; }}
+    .dirty-badge {{ color: #f2cc60; background: #3d3410; }}
   }}
 </style></head>
 <body>
@@ -163,7 +166,10 @@ def _list_html(rows):
         return '<p class="empty">none</p>'
     lis = []
     for path, stat, diff_text in rows:
-        stat_html = f'<span class="stat">{stat}</span>' if stat else ""
+        if stat == "dirty":  # sentinel: edited-since-last-reflect indicator, not a +/- diffstat
+            stat_html = '<span class="dirty-badge">dirty</span>'
+        else:
+            stat_html = f'<span class="stat">{stat}</span>' if stat else ""
         if diff_text:
             lis.append(
                 f'<li><details><summary><span class="path">{path}</span>{stat_html}</summary>'
@@ -435,7 +441,8 @@ def knowledge_activity():
                 non_kn_edited_files.add(fp)
 
     return (knowledge_dir, len(read_files), len(edited_files), total_files, len(non_kn_edited_files),
-            tool_calls, reflected, len(edited_since_reflect), sorted(read_files), sorted(edited_files))
+            tool_calls, reflected, len(edited_since_reflect), sorted(read_files), sorted(edited_files),
+            edited_since_reflect)
 
 # Curate nudge — how much of the knowledge tree has changed since the last curate pass.
 # `knowledge/_curated.md` (reserved marker, see KNOWLEDGE_ORG.md) holds the date curate last
@@ -511,14 +518,18 @@ if added is not None or removed is not None:
 # Knowledge line
 kn_str = None
 if kn is not None:
-    knowledge_dir, n_read, n_edit, total_files, n_non_kn_edit, tool_calls, reflected, n_edit_since_reflect, read_files_list, edited_files_list = kn
+    knowledge_dir, n_read, n_edit, total_files, n_non_kn_edit, tool_calls, reflected, n_edit_since_reflect, read_files_list, edited_files_list, edited_since_reflect = kn
     read_pct = (n_read / total_files * 100) if total_files else 0
     edit_pct = (n_edit / total_files * 100) if total_files else 0
     read_num = f"\033[1m{n_read}{RESET}"
     edit_num = f"\033[1m{n_edit}{RESET}"
+    dirty_num = f"\033[1m{n_edit_since_reflect}{RESET}"
     if session_key:
         rows_read = [(os.path.relpath(p, knowledge_dir), None, None) for p in read_files_list]
-        rows_edit = [(os.path.relpath(p, knowledge_dir), None, None) for p in edited_files_list]
+        rows_edit = [
+            (os.path.relpath(p, knowledge_dir), "dirty" if p in edited_since_reflect else None, None)
+            for p in edited_files_list
+        ]
         page_path = write_page(
             "knowledge", session_key, "Knowledge activity",
             [("Read", "read", rows_read), ("Edited", "edited", rows_edit)],
@@ -526,19 +537,18 @@ if kn is not None:
         if page_path:
             read_num = hyperlink(read_num, page_path + "#read")  # only the number is clickable
             edit_num = hyperlink(edit_num, page_path + "#edited")
+            # dirty files are a subset of edited, flagged inline there (dirty-badge) rather than
+            # getting their own section — so the dirty count links into #edited too.
+            dirty_num = hyperlink(dirty_num, page_path + "#edited")
     read_text = f"{read_num}{DIM} read ({RESET}\033[1m{read_pct:.0f}%{RESET}{DIM}){RESET}"
     edit_text = f"{edit_num}{DIM} edited ({RESET}\033[1m{edit_pct:.0f}%{RESET}{DIM}){RESET}"
     read_part = italic(read_text)
     edit_part = italic(edit_text)
+    kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part])
 
-    # Always-visible dirtiness — edited-since-last-reflect count/%, same number the "dirtiness"
-    # nudge trigger below uses, just not gated behind the nudge firing.
-    dirty_pct = (n_edit_since_reflect / total_files * 100) if total_files else 0
-    dirty_part = italic(f"\033[1m{n_edit_since_reflect}{RESET}{DIM} dirty ({RESET}\033[1m{dirty_pct:.0f}%{RESET}{DIM}){RESET}")
-
-    kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part, dirty_part])
-
-    # Reflect nudge, two independent triggers:
+    # Reflect segment — dirtiness (edited-since-last-reflect count/%) lives here, not as a third
+    # independent knowledge stat, since dirtiness IS the reflect signal. Always visible; gets a
+    # dot + "?" + trigger reasons appended when one of the two nudge triggers below actually fires:
     # 1. Nothing captured live at all — code changed (>=8 non-knowledge files) or a long
     #    investigation (>=45 tool calls over >=30min) happened, no knowledge file touched
     #    (n_edit == 0), and reflect hasn't run yet this session. Fires once per session — if
@@ -553,13 +563,18 @@ if kn is not None:
     activity_trigger = tool_calls >= 45 and duration_min >= 30 and n_edit == 0
     no_capture_trigger = not reflected and (edits_trigger or activity_trigger)
     dup_risk_trigger = n_edit_since_reflect > 2
+    dirty_pct = (n_edit_since_reflect / total_files * 100) if total_files else 0
+    dirty_stat = f"{dirty_num}{DIM} dirty ({RESET}\033[1m{dirty_pct:.0f}%{RESET}{DIM}){RESET}"
     if no_capture_trigger or dup_risk_trigger:
         reasons = "+".join(r for r, on in (
             ("edits", edits_trigger and not reflected),
             ("activity", activity_trigger and not reflected),
             ("dirtiness", dup_risk_trigger),
         ) if on)
-        kn_str += SEP + italic(f"{Y}●{RESET} \033[1mreflect?{RESET} {DIM}({reasons}){RESET}")
+        reflect_text = f"{Y}●{RESET} \033[1mreflect?{RESET} {dirty_stat} {DIM}({reasons}){RESET}"
+    else:
+        reflect_text = f"{DIM}reflect: {RESET}{dirty_stat}"
+    kn_str += SEP + italic(reflect_text)
 
     cur = curate_signal(knowledge_dir, total_files) if cwd else None
     if cur is not None:
