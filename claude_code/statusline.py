@@ -344,10 +344,22 @@ def knowledge_activity():
         return None
 
     # Pass 1: locate reflect_boundary — a forward scan can't know it while walking edits, since
-    # reflect's own writes (Skill call -> its Edits -> next user turn) all land *before* the
-    # boundary is knowable. Find it first: the line of the first "user" entry after the LAST
-    # Skill("reflect") call. Edits at or before it are reflect's own; edits after are "since
-    # last reflect". No reflect this session leaves it at -1, so everything counts from the top.
+    # reflect's own writes (invocation -> its Edits -> next real user turn) all land *before* the
+    # boundary is knowable. Find it first: the line of the first real user turn after the LAST
+    # reflect invocation. Edits at or before it are reflect's own; edits after are "since last
+    # reflect". No reflect this session leaves it at -1, so everything counts from the top.
+    #
+    # Reflect gets invoked two different ways, and both have to be caught:
+    #  - the assistant calls the Skill tool (input.skill may be namespaced, e.g.
+    #    "arwyl-lite:reflect" for marketplace installs — match on the tail after the last ":").
+    #  - the user directly types the slash command (`/reflect` or `/arwyl-lite:reflect`). This
+    #    does NOT show up as an assistant Skill tool_use at all — Claude Code records it as a
+    #    "user"-type entry whose content is a literal string containing
+    #    "<command-name>/arwyl-lite:reflect</command-name>". Missing this form meant a
+    #    user-typed /reflect was entirely invisible to the boundary logic — `reflected` stayed
+    #    False and the boundary stayed unset regardless of namespacing, so a real reflect run
+    #    still didn't clear the dirtiness nudge (the actual failure sanctum hit).
+    reflect_cmd_re = re.compile(r"<command-name>/(?:[^<:]+:)?reflect</command-name>")
     reflect_boundary = -1
     reflected = False
     awaiting_boundary = False
@@ -358,19 +370,19 @@ def knowledge_activity():
             continue
         etype = entry.get("type")
         if etype == "user":
-            if awaiting_boundary:
+            content = entry.get("message", {}).get("content")
+            is_reflect_command = isinstance(content, str) and bool(reflect_cmd_re.search(content))
+            if awaiting_boundary and not is_reflect_command:
                 reflect_boundary = line_no
                 awaiting_boundary = False
+            if is_reflect_command:
+                reflected = True
+                awaiting_boundary = True
             continue
         if etype != "assistant":
             continue
         for block in entry.get("message", {}).get("content") or []:
             if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Skill":
-                # Marketplace installs invoke this namespaced ("arwyl-lite:reflect"), not bare
-                # "reflect" — matching only the bare name meant `reflected` never went True and
-                # the boundary never got set for any consumer using the plugin route (sanctum),
-                # so literally every knowledge edit all session counted as "since last reflect"
-                # and the dup-risk nudge could fire right after reflect had just run.
                 skill_name = (block.get("input") or {}).get("skill") or ""
                 if skill_name.rsplit(":", 1)[-1] == "reflect":
                     reflected = True
