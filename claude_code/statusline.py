@@ -45,7 +45,7 @@ if max_ctx:
 
 effort_obj = data.get("effort")
 if isinstance(effort_obj, dict) and effort_obj.get("level"):
-    model_str += f"\033[1m [{effort_obj['level']}]{RESET}"
+    model_str += f"{DIM} [{RESET}\033[1m{effort_obj['level']}{RESET}{DIM}]{RESET}"
 
 def fmt_reset(rl):
     resets_at = rl.get("resets_at")
@@ -64,6 +64,10 @@ def fmt_reset(rl):
         countdown = f"{m}m"
     c = used_dot_color(used)
     return f"{c}●{RESET}\033[1m {used:.0f}%{RESET} ({countdown})"
+
+# Session cost — data["cost"]["total_cost_usd"], same object session line-diff/duration read from.
+cost_usd = data.get("cost", {}).get("total_cost_usd")
+cost_str = italic(f"\033[1m${cost_usd:.2f}{RESET}") if cost_usd is not None else None
 
 rate = data.get("rate_limits", {})
 rl_parts = [s for s in [fmt_reset(rate.get("five_hour", {})), fmt_reset(rate.get("seven_day", {}))] if s]
@@ -362,7 +366,13 @@ def knowledge_activity():
             continue
         for block in entry.get("message", {}).get("content") or []:
             if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Skill":
-                if (block.get("input") or {}).get("skill") == "reflect":
+                # Marketplace installs invoke this namespaced ("arwyl-lite:reflect"), not bare
+                # "reflect" — matching only the bare name meant `reflected` never went True and
+                # the boundary never got set for any consumer using the plugin route (sanctum),
+                # so literally every knowledge edit all session counted as "since last reflect"
+                # and the dup-risk nudge could fire right after reflect had just run.
+                skill_name = (block.get("input") or {}).get("skill") or ""
+                if skill_name.rsplit(":", 1)[-1] == "reflect":
                     reflected = True
                     awaiting_boundary = True
 
@@ -492,7 +502,13 @@ if kn is not None:
     edit_text = f"{edit_num}{DIM} edited ({RESET}\033[1m{edit_pct:.0f}%{RESET}{DIM}){RESET}"
     read_part = italic(read_text)
     edit_part = italic(edit_text)
-    kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part])
+
+    # Always-visible dirtiness — edited-since-last-reflect count/%, same number the "dirtiness"
+    # nudge trigger below uses, just not gated behind the nudge firing.
+    dirty_pct = (n_edit_since_reflect / total_files * 100) if total_files else 0
+    dirty_part = italic(f"\033[1m{n_edit_since_reflect}{RESET}{DIM} dirty ({RESET}\033[1m{dirty_pct:.0f}%{RESET}{DIM}){RESET}")
+
+    kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part, dirty_part])
 
     # Reflect nudge, two independent triggers:
     # 1. Nothing captured live at all — code changed (>=8 non-knowledge files) or a long
@@ -513,7 +529,7 @@ if kn is not None:
         reasons = "+".join(r for r, on in (
             ("edits", edits_trigger and not reflected),
             ("activity", activity_trigger and not reflected),
-            ("dup-risk", dup_risk_trigger),
+            ("dirtiness", dup_risk_trigger),
         ) if on)
         kn_str += SEP + italic(f"{Y}●{RESET} \033[1mreflect?{RESET} {DIM}({reasons}){RESET}")
 
@@ -524,7 +540,7 @@ if kn is not None:
             kn_str += f"{SEP}{Y}●{RESET} \033[1mcurate?{RESET} {DIM}({changed_count} files){RESET}"
 
 git_line_parts = [p for p in [git_str, lines_str] if p]
-status_parts = [ctx_str, model_str] + rl_parts
+status_parts = [ctx_str, model_str] + ([cost_str] if cost_str else []) + rl_parts
 
 lines = []
 if kn_str:
