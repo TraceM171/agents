@@ -2,12 +2,15 @@
 
 Agent entry point for this project. Defines the mandatory reads and the consultation contract for the knowledge tree.
 
-## Mandatory reads (auto-loaded on every interaction)
+## Mandatory reads
 
-These files are referenced via `@` notation and are auto-sent with every interaction. **Never skip them — read in full before doing anything else.**
+These files must be read in full, every session, before doing anything else:
 
-- `@knowledge/_basic.md` — project index (subdirectory map, key decisions, philosophy)
-- `@knowledge/.local/_basic.md` — owner-specific context (VPS, domain, repo, backup, collab rules)
+- `knowledge/_basic.md` — project index (subdirectory map, key decisions, philosophy)
+- `knowledge/.local/_basic.md` — owner-specific context (VPS, domain, repo, backup, collab rules)
+- `knowledge/status.md` — current deployment/project state
+
+**How this reaches you depends on setup — verify, don't assume either way.** Plugin installs (Option A): the `SessionStart` hook explicitly tells you to read these files rather than pre-loading their content — stuffing a large file (especially `status.md`, which only grows) directly into hook context silently truncates past a certain size with no error, so the hook asks for an explicit read instead of gambling on size. Manual installs (Option B, this file symlinked to `CLAUDE.md`): Claude Code's `@` notation (`@knowledge/_basic.md`, `@knowledge/.local/_basic.md`) pre-loads those two directly, but `status.md` is not on that list — read it yourself the same way. **Either way:** if you don't actually see a mandatory file's content already in this conversation at the start of a session, don't take "it was probably preloaded" on faith — read it yourself before doing anything else.
 
 **Transitive rule:** if any mandatory file above, or any file subsequently opened, explicitly marks another file as "always read" or "mandatory", treat that file as mandatory too and read it before acting. The mandatory set is a closure — follow it at runtime, do not wait to be told. (Example: `knowledge/.local/_basic.md` says "Always read `collab.md`" — so `collab.md` is mandatory by transitivity and must be read on the first turn.)
 
@@ -15,7 +18,7 @@ These files are referenced via `@` notation and are auto-sent with every interac
 
 Beyond the mandatory set, consult the rest of the knowledge tree **before acting, not after**. When a task touches a domain:
 
-1. Open `@knowledge/status.md` first if the task touches the running system — it is the snapshot of what is deployed, in flight, and recently changed. Stale assumptions about the system are the most common mistake.
+1. `status.md` is already mandatory reading (above) — but if the task touches the running system and it's been a while since you last looked at it this session (long conversation, resumed session, anything that could have pushed it out of view), re-open it. It is the snapshot of what is deployed, in flight, and recently changed. Stale assumptions about the system are the most common mistake.
 2. Open the domain's `_basic.md` next (e.g. `knowledge/services/_basic.md`, `knowledge/security/_basic.md`, `knowledge/operations/_basic.md`) — it tells you what the domain contains and the recommended read order inside it.
 3. Read the specific model / pattern / audit files in that domain that the task touches.
 4. Cross-reference anything linked from the mandatory reads and from any `_basic.md` you open — links are routing hints, not optional.

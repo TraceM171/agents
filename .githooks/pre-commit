@@ -1,0 +1,24 @@
+#!/bin/sh
+# Blocks a commit if AGENTS.md grows past the size budget it must stay under.
+#
+# AGENTS.md is inlined verbatim into the SessionStart hook's additionalContext, which Claude
+# Code hard-caps at 10,000 characters (undocumented past that: silent truncation to a preview,
+# no error — see hooks/session-start.py). AGENTS_MD_BUDGET here must match the constant of the
+# same name there.
+
+AGENTS_MD="claude_code/AGENTS.md"
+AGENTS_MD_BUDGET=8000
+
+[ -f "$AGENTS_MD" ] || exit 0
+
+size=$(wc -c < "$AGENTS_MD" | tr -d ' ')
+
+if [ "$size" -gt "$AGENTS_MD_BUDGET" ]; then
+    echo "pre-commit: $AGENTS_MD is $size characters, over the $AGENTS_MD_BUDGET-character budget." >&2
+    echo "It's inlined directly into hook additionalContext, hard-capped at 10,000 chars by Claude Code." >&2
+    echo "Trim it before committing, or raise AGENTS_MD_BUDGET in both this file and hooks/session-start.py" >&2
+    echo "with a deliberate reason." >&2
+    exit 1
+fi
+
+exit 0

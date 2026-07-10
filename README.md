@@ -24,7 +24,7 @@ Either way, the hook only acts in projects that already have a `knowledge/` dire
 mkdir knowledge
 ```
 
-Next session, the hook bootstraps `knowledge/.local/_basic.md` etc. automatically, and injects `AGENTS.md`'s rules plus `knowledge/_basic.md`, `knowledge/.local/_basic.md`, and `knowledge/status.md` (whichever exist) into context. The status line still needs manual setup below — plugins can't configure `statusLine`.
+Next session, the hook bootstraps `knowledge/.local/_basic.md` etc. automatically, inlines `AGENTS.md`'s rules into context directly, and tells the agent to read `knowledge/_basic.md`, `knowledge/.local/_basic.md`, and `knowledge/status.md` (whichever exist) itself before doing anything else. (The knowledge files are read rather than inlined — a large `status.md` stuffed directly into hook context gets silently truncated by Claude Code past a certain size, with no error; a `Read` call isn't.) The status line still needs manual setup below — plugins can't configure `statusLine`.
 
 ### Option B: Manual
 
@@ -157,6 +157,14 @@ ln ~/agents-template/claude_code/handoff.md .claude/skills/handoff/SKILL.md
 # OpenCode
 mkdir -p .opencode/skills/handoff
 ln ~/agents-template/claude_code/handoff.md .opencode/skills/handoff/SKILL.md
+```
+
+## Development
+
+`claude_code/AGENTS.md` is inlined verbatim into the `SessionStart` hook's `additionalContext`, which Claude Code hard-caps at 10,000 characters (silent truncation past that, no error). A pre-commit hook blocks commits that push it over an 8,000-character budget. Enable it once per clone:
+
+```bash
+git config core.hooksPath .githooks
 ```
 
 **Use:** Say "handoff" or "wrap up" or use the skill tool to invoke it.
