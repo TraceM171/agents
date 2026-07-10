@@ -440,6 +440,14 @@ def knowledge_activity():
             elif name in ("Edit", "Write", "NotebookEdit"):
                 non_kn_edited_files.add(fp)
 
+    # A file touched mid-session can be renamed/merged/deleted later in the same session (e.g.
+    # a curate restructuring pass) — its path stays in these sets but drops out of total_files
+    # (a fresh disk count at render time), which pushed read/edit % over 100. Drop paths that no
+    # longer exist so the numerator and denominator describe the same tree snapshot.
+    read_files = {p for p in read_files if os.path.isfile(p)}
+    edited_files = {p for p in edited_files if os.path.isfile(p)}
+    edited_since_reflect &= edited_files
+
     return (knowledge_dir, len(read_files), len(edited_files), total_files, len(non_kn_edited_files),
             tool_calls, reflected, len(edited_since_reflect), sorted(read_files), sorted(edited_files),
             edited_since_reflect)
@@ -515,15 +523,30 @@ if added is not None or removed is not None:
             session_stat_text = hyperlink(session_stat_text, page_path + "#session")
     lines_str = italic(f"{DIM}session {RESET}{session_stat_text}")
 
-# Knowledge line
+# Knowledge line — always rendered when a knowledge/ dir exists, even at 0/0/0 (that's a
+# legitimate reading: nothing touched yet this session).
 kn_str = None
 if kn is not None:
     knowledge_dir, n_read, n_edit, total_files, n_non_kn_edit, tool_calls, reflected, n_edit_since_reflect, read_files_list, edited_files_list, edited_since_reflect = kn
+
+    # Reflect nudge triggers — see git history / KNOWLEDGE_ORG.md for the rationale:
+    # 1. no_capture_trigger — code changed (>=8 non-knowledge files) or a long investigation
+    #    (>=45 tool calls over >=30min) happened, no knowledge file touched (n_edit == 0), and
+    #    reflect hasn't run yet this session.
+    # 2. dup_risk_trigger — more than 2 knowledge files edited since the last reflect pass (or
+    #    since session start, if reflect hasn't run yet), excluding reflect's own edits.
+    duration_min = (data.get("cost", {}).get("total_duration_ms") or 0) / 60000
+    edits_trigger = n_non_kn_edit >= 8 and n_edit == 0
+    activity_trigger = tool_calls >= 45 and duration_min >= 30 and n_edit == 0
+    no_capture_trigger = not reflected and (edits_trigger or activity_trigger)
+    dup_risk_trigger = n_edit_since_reflect > 2
+    cur = curate_signal(knowledge_dir, total_files) if cwd else None
+    curate_trigger = bool(cur and cur[1])
+
     read_pct = (n_read / total_files * 100) if total_files else 0
     edit_pct = (n_edit / total_files * 100) if total_files else 0
     read_num = f"\033[1m{n_read}{RESET}"
     edit_num = f"\033[1m{n_edit}{RESET}"
-    dirty_num = f"\033[1m{n_edit_since_reflect}{RESET}"
     if session_key:
         rows_read = [(os.path.relpath(p, knowledge_dir), None, None) for p in read_files_list]
         rows_edit = [
@@ -535,52 +558,31 @@ if kn is not None:
             [("Read", "read", rows_read), ("Edited", "edited", rows_edit)],
         )
         if page_path:
-            read_num = hyperlink(read_num, page_path + "#read")  # only the number is clickable
-            edit_num = hyperlink(edit_num, page_path + "#edited")
-            # dirty files are a subset of edited, flagged inline there (dirty-badge) rather than
-            # getting their own section — so the dirty count links into #edited too.
-            dirty_num = hyperlink(dirty_num, page_path + "#edited")
+            # a zero count has nothing to click through to — leave those plain, not linked
+            if n_read:
+                read_num = hyperlink(read_num, page_path + "#read")
+            if n_edit:
+                edit_num = hyperlink(edit_num, page_path + "#edited")
     read_text = f"{read_num}{DIM} read ({RESET}\033[1m{read_pct:.0f}%{RESET}{DIM}){RESET}"
     edit_text = f"{edit_num}{DIM} edited ({RESET}\033[1m{edit_pct:.0f}%{RESET}{DIM}){RESET}"
     read_part = italic(read_text)
     edit_part = italic(edit_text)
     kn_str = f"{DIM}knowledge:{RESET} " + SEP.join([read_part, edit_part])
 
-    # Reflect segment — dirtiness (edited-since-last-reflect count/%) lives here, not as a third
-    # independent knowledge stat, since dirtiness IS the reflect signal. Always visible; gets a
-    # dot + "?" + trigger reasons appended when one of the two nudge triggers below actually fires:
-    # 1. Nothing captured live at all — code changed (>=8 non-knowledge files) or a long
-    #    investigation (>=45 tool calls over >=30min) happened, no knowledge file touched
-    #    (n_edit == 0), and reflect hasn't run yet this session. Fires once per session — if
-    #    reflect already ran, this scenario no longer applies.
-    # 2. Live-capture pileup — more than 2 knowledge files edited since the last reflect pass
-    #    (or since session start, if reflect hasn't run yet), excluding reflect's own edits.
-    #    This is the duplication/kind-mixing risk zone (see KNOWLEDGE_ORG.md's "no duplication"
-    #    and "recent-changes entries are pointers, not records") — it re-fires after reflect runs
-    #    once enough new edits pile up again, unlike trigger 1.
-    duration_min = (data.get("cost", {}).get("total_duration_ms") or 0) / 60000
-    edits_trigger = n_non_kn_edit >= 8 and n_edit == 0
-    activity_trigger = tool_calls >= 45 and duration_min >= 30 and n_edit == 0
-    no_capture_trigger = not reflected and (edits_trigger or activity_trigger)
-    dup_risk_trigger = n_edit_since_reflect > 2
-    dirty_pct = (n_edit_since_reflect / total_files * 100) if total_files else 0
-    dirty_stat = f"{dirty_num}{DIM} dirty ({RESET}\033[1m{dirty_pct:.0f}%{RESET}{DIM}){RESET}"
+    # Reflect nudge — no baseline stat, shown only when a trigger actually fires.
     if no_capture_trigger or dup_risk_trigger:
         reasons = "+".join(r for r, on in (
             ("edits", edits_trigger and not reflected),
             ("activity", activity_trigger and not reflected),
             ("dirtiness", dup_risk_trigger),
         ) if on)
-        reflect_text = f"{Y}●{RESET} \033[1mreflect?{RESET} {dirty_stat} {DIM}({reasons}){RESET}"
-    else:
-        reflect_text = f"{DIM}reflect: {RESET}{dirty_stat}"
-    kn_str += SEP + italic(reflect_text)
+        reflect_text = f"{Y}●{RESET} \033[1mreflect?{RESET} {DIM}({reasons}){RESET}"
+        kn_str += SEP + italic(reflect_text)
 
-    cur = curate_signal(knowledge_dir, total_files) if cwd else None
-    if cur is not None:
-        changed_count, curate_trigger = cur
-        if curate_trigger:
-            kn_str += f"{SEP}{Y}●{RESET} \033[1mcurate?{RESET} {DIM}({changed_count} files){RESET}"
+    # Curate nudge — same shape, no baseline stat. Not wrapped in italic() — curate is persistent
+    # repo state (survives across sessions), not session-scoped, per italic()'s docstring.
+    if curate_trigger:
+        kn_str += f"{SEP}{Y}●{RESET} \033[1mcurate?{RESET} {DIM}(dirtiness){RESET}"
 
 git_line_parts = [p for p in [git_str, lines_str] if p]
 status_parts = [ctx_str, model_str] + ([cost_str] if cost_str else []) + rl_parts
