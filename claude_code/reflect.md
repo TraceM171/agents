@@ -11,11 +11,20 @@ Use this skill when the user says "reflect" or asks to "capture what we've learn
 
 The user wants the agent to collect everything learned during the current session and update the knowledge base accordingly.
 
-Knowledge should already be captured inline as work happens, per AGENTS.md's "Capture as you go" — reflect is the end-of-session safety net for whatever didn't get written down live, not the primary capture mechanism. It's typically run once, near the end of a session, not after every few edits. A pass that finds little or nothing to add is the expected steady state, not a sign it wasn't needed.
+Knowledge should already be captured inline as work happens, per AGENTS.md's "Capture as you go" — reflect is the end-of-session safety net for whatever didn't get written down live, not the primary capture mechanism. It's typically run once, near the end of a session, not after every few edits. A pass that finds little or nothing *new* to add is the expected steady state — but that's a separate question from whether what was already written live is duplicated or misfiled. Check both; don't let "everything was already captured" skip the audit in step 1 below.
 
 ## Workflow
 
-### 1. Identify Learned Information
+### 1. Audit this session's own live writes
+
+Before hunting for gaps, check what already got written live this session for the mistakes `reflect` exists to catch in aggregate — but scoped cheaply to just this session's diff:
+
+1. `git diff` / `git status` restricted to `knowledge/**`, limited to files this session actually touched.
+2. For each changed file, ask: does this same fact also appear somewhere else now (duplication)? Did a `status.md` "recent changes" entry grow past one line into a full write-up that belongs in a per-X file or a dated audit instead (see `KNOWLEDGE_ORG.md`'s "Recent-changes entries are pointers, not records")?
+3. Fix what's found now — trim the status.md entry to a line + link, move the narrative to its canonical home — rather than leaving it for the next `curate`.
+4. This is a small, session-scoped check. It does not replace `curate`, which still audits the whole tree for drift accumulated across sessions.
+
+### 2. Identify Learned Information
 
 Review the conversation history and identify:
 - New facts about the project
@@ -24,7 +33,7 @@ Review the conversation history and identify:
 - User preferences revealed during the session
 - Any other information worth persisting
 
-### 2. Update Knowledge Files
+### 3. Update Knowledge Files
 
 For each piece of learned information:
 
@@ -37,13 +46,14 @@ For each piece of learned information:
 7. Append new information to the appropriate file.
 8. If information is time-sensitive or experimental, mark it clearly.
 
-### 3. Commit and Push (if applicable)
+### 4. Commit and Push (if applicable)
 
 If the knowledge directory is a separate repo (not in the project repo), ask the user whether they want to commit and push the changes before finishing.
 
-### 4. Report Summary
+### 5. Report Summary
 
 After updating knowledge, provide a brief summary:
+- Any duplication/misfiling found and fixed in step 1's session-scoped audit
 - What new information was captured
 - Where it was stored
 - Any gaps or uncertainties noted

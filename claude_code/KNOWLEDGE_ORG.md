@@ -163,6 +163,12 @@ If a file cannot be summarized in one sentence, it is doing too much. Split it. 
 
 When a fact in one file is relevant to another, link to the canonical source. Do not copy the text across files. Restated text drifts; links do not.
 
+### Recent-changes entries are pointers, not records
+
+A `status.md` "recent changes" entry is one line: what changed, and a link to where the full record lives. It is not the record itself. If a change needs more than a line to explain — root cause, evidence, verification steps — that detail belongs in the per-X file's current-state content (if it's a design/config fact) or a dated audit (if it's a historical incident), never written out inline in `status.md`. A status entry that has grown into a paragraph is a sign the fact was captured in the wrong place, not that status.md needed a bigger entry.
+
+This matters most for facts captured live, mid-task, rather than during a dedicated `reflect`/`curate` pass — see `AGENTS.md`'s "Capture as you go" for the live-capture discipline this enables.
+
 ### Dated files are append-only
 
 A dated audit or incident file, once closed, is not edited. New findings open a new dated file that references the old one. Corrections to the original go in a new dated file with "Correction:" in the title, not by editing the closed record.
@@ -229,6 +235,7 @@ A restructuring is the wrong time to:
 | Audits are dated and append-only | History silently rewritten |
 | Patterns are recipes, not design | Models that conflate "what" with "how" |
 | No duplication; link, do not restate | Two files claiming to be the truth |
+| Recent-changes entries are pointers, not records | `status.md` bloating into a de facto changelog/audit |
 | Top-level is cross-cutting only | Top-level becomes a junk drawer |
 | Per-X convention for collections of instances | The mega-file-that-grows failure mode |
 | Per-X files have a documented structure | Inconsistent per-instance docs |

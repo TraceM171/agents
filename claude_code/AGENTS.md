@@ -30,6 +30,8 @@ Do not wait to be asked. If a relevant file exists, open it. The cost of a quick
 
 Update the knowledge tree inline, while working — the moment a fact is confirmed, a decision is made, or a stale value is caught, write it into the right file immediately (per `KNOWLEDGE_ORG.md`). Do not batch learnings up for a later `reflect` pass by default. `reflect` exists as an end-of-session catch-all for whatever slipped through, not as the primary capture mechanism — a `reflect` run that finds little or nothing to add because everything was already written down live is the expected outcome, not a sign it was skipped.
 
+**Live capture writes small.** A fact confirmed mid-task gets a one-line `status.md` entry (what changed + a link) and, separately, a direct edit to the per-X file's current-state content if that's where the fact actually lives — not a multi-paragraph write-up duplicated into both. If the finding is incident-grade (something was broken, here's the root cause and the fix), it earns its own dated audit file immediately, mid-session, same as it would at `reflect` time — don't park the full narrative in `status.md` as a stand-in for the audit file you didn't feel like creating yet. See `KNOWLEDGE_ORG.md`'s "Recent-changes entries are pointers, not records."
+
 ## Memory discipline — knowledge system only
 
 **Never use external memory functions to remember things.** This includes the Claude Code memory tool, auto-managed `MEMORY.md` sidecars, or any other tool-level persistence layer. They fragment context, drift from the source of truth, and bypass the org rules.
@@ -44,6 +46,7 @@ The knowledge tree (`knowledge/**`, governed by `KNOWLEDGE_ORG.md`) is the singl
 - Moving, renaming, or deleting a file
 - Restructuring a domain (split, merge, promote top-level → domain, etc.)
 - Changing the kind of a file (e.g. promoting status content into a model)
+- Appending a substantial new entry to an existing file — a new incident write-up, a new gotcha, a multi-line narrative. (A single-value edit — bumping a version, flipping a flag, fixing a typo — does not require a re-read.) This is the trigger most often missed: editing an *existing* file doesn't look like "adding" or "restructuring," but a paragraph-sized addition is exactly where duplication and kind-mixing creep in.
 
 Why hard: the rules (five kinds, per-X convention, no top-level cruft, no duplication, models contain no state / no history / no recipes) are what keep the tree navigable as it grows. Guessing the rules produces drift, and drift eventually forces a full rewrite. A 5-minute read of `KNOWLEDGE_ORG.md` prevents that.
 
