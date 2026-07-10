@@ -355,10 +355,20 @@ def knowledge_activity():
     #  - the user directly types the slash command (`/reflect` or `/arwyl-lite:reflect`). This
     #    does NOT show up as an assistant Skill tool_use at all — Claude Code records it as a
     #    "user"-type entry whose content is a literal string containing
-    #    "<command-name>/arwyl-lite:reflect</command-name>". Missing this form meant a
-    #    user-typed /reflect was entirely invisible to the boundary logic — `reflected` stayed
-    #    False and the boundary stayed unset regardless of namespacing, so a real reflect run
-    #    still didn't clear the dirtiness nudge (the actual failure sanctum hit).
+    #    "<command-name>/arwyl-lite:reflect</command-name>".
+    #
+    # "First user entry after the invocation" is NOT "first real chat turn", though — tool_result
+    # blocks come back as type:"user" too (every tool call reflect itself makes, e.g. its own
+    # Edit/Write calls, gets an immediate type:"user" tool_result entry), and slash-command
+    # invocation is actually TWO synthetic entries: the "<command-name>" marker (real, matched
+    # above) immediately followed by a second type:"user" entry containing the expanded skill
+    # prompt text, flagged `isMeta: true`. Treating either of those as "the next user turn" closed
+    # the boundary one line after the invocation — before reflect had done any of its actual work
+    # — so its own edits counted as "since last reflect" (confirmed against sanctum's real
+    # transcript: 8/8 edited-since-reflect immediately after a reflect run). Skip both: only a
+    # user entry that's neither tool-result-only nor isMeta really closes the boundary. If nothing
+    # like that appears before EOF (reflect was the literal last thing that ran), the boundary
+    # closes at end-of-file — none of reflect's edits should count as "since reflect" either way.
     reflect_cmd_re = re.compile(r"<command-name>/(?:[^<:]+:)?reflect</command-name>")
     reflect_boundary = -1
     reflected = False
@@ -371,8 +381,12 @@ def knowledge_activity():
         etype = entry.get("type")
         if etype == "user":
             content = entry.get("message", {}).get("content")
+            is_meta = bool(entry.get("isMeta"))
+            is_tool_result_only = isinstance(content, list) and content and all(
+                isinstance(b, dict) and b.get("type") == "tool_result" for b in content
+            )
             is_reflect_command = isinstance(content, str) and bool(reflect_cmd_re.search(content))
-            if awaiting_boundary and not is_reflect_command:
+            if awaiting_boundary and not is_tool_result_only and not is_meta and not is_reflect_command:
                 reflect_boundary = line_no
                 awaiting_boundary = False
             if is_reflect_command:
@@ -387,6 +401,8 @@ def knowledge_activity():
                 if skill_name.rsplit(":", 1)[-1] == "reflect":
                     reflected = True
                     awaiting_boundary = True
+    if awaiting_boundary:
+        reflect_boundary = len(lines)
 
     # Pass 2: tally reads/edits against the now-known boundary.
     read_files, edited_files, non_kn_edited_files = set(), set(), set()
