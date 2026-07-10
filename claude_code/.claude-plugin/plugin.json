@@ -1,7 +1,7 @@
 {
   "name": "arwyl-lite",
   "displayName": "Arwyl Lite",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Knowledge-tree conventions, reflect/curate/handoff skills, and a status line for Claude Code.",
   "author": {
     "name": "TraceM171"
