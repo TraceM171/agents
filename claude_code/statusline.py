@@ -477,24 +477,35 @@ def knowledge_activity():
             edited_since_reflect)
 
 # Curate nudge — how much of the knowledge tree has changed since the last curate pass.
-# `knowledge/_curated.md` (reserved marker, see KNOWLEDGE_ORG.md) holds the date curate last
-# ran; count distinct knowledge files touched by commits since then. No marker yet (never
+# `knowledge/_curated.md` (reserved marker, see KNOWLEDGE_ORG.md) holds the UTC timestamp curate
+# last ran; count distinct knowledge files touched by commits since then. No marker yet (never
 # curated) falls back to total tree size, gated so a small fresh tree doesn't nag.
+#
+# A bare date (`YYYY-MM-DD`) marker is day-granular: `git log --since=<date>` is midnight-inclusive,
+# so it sweeps in every commit from that whole calendar day — including ones made *before* curate
+# ran that day, and curate's own reviewed-but-not-yet-committed work landing moments after. That
+# double-counted a day's ordinary work as post-curate drift whenever curate ran anywhere but first
+# thing in the morning (confirmed against sanctum's 2026-07-15 session logs: curate ran last, at
+# 19:49 UTC, after reviewing that day's 26-file storage/backup rewrite and finding nothing to fix —
+# but the bare-date marker still made the next session's --since=2026-07-15 catch all 26 files,
+# including ones committed hours before curate even started). A full timestamp fixes the common
+# case; it can't fully close a several-second race if a commit lands after curate's marker write
+# but before the process that authored it exits — not worth chasing further.
 def curate_signal(knowledge_dir, total_files):
     marker_path = os.path.join(knowledge_dir, "_curated.md")
-    since_date = None
+    since_ts = None
     if os.path.isfile(marker_path):
         try:
             content = open(marker_path).read().strip()
         except OSError:
             content = ""
-        if re.match(r"^\d{4}-\d{2}-\d{2}$", content):
-            since_date = content
-    if not since_date:
+        if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", content):
+            since_ts = content
+    if not since_ts:
         return total_files, total_files >= 15
     try:
         out = subprocess.run(
-            ["git", "-C", cwd, "log", f"--since={since_date}", "--name-only", "--pretty=format:", "--", knowledge_dir],
+            ["git", "-C", cwd, "log", f"--since={since_ts}", "--name-only", "--pretty=format:", "--", knowledge_dir],
             capture_output=True, text=True, timeout=2,
         )
     except Exception:

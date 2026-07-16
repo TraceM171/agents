@@ -61,13 +61,15 @@ Deciding *what* to restructure — which files move, merge, split, or get delete
 - Do not fabricate content to fill gaps. Classification is an organization-of-knowledge call — decide it directly from `KNOWLEDGE_ORG.md` and best judgment rather than asking the user; note genuinely borderline calls in the final report (step 8) instead of stopping to ask.
 - Leave closed dated audits untouched; if one contains a fact that needs correcting, open a new dated file per the append-only rule instead of editing the original.
 
-### 6. Stamp the Curate Marker
+### 6. Commit and Push the Audit (if applicable)
 
-Write today's date (`YYYY-MM-DD`), and nothing else, to `knowledge/_curated.md` (create it if missing). This is a reserved marker file per `KNOWLEDGE_ORG.md` — tooling (e.g. the status line) reads it to gauge drift since the last curate pass. Do this even on a run that found nothing to fix; a clean audit still resets the drift clock.
+Same as reflect: if the knowledge directory is a separate repo, ask the user whether to commit and push the changes before finishing. If it's part of the project repo, follow the project's normal commit conventions and only commit if asked. Do **not** include `_curated.md` in this commit — the marker isn't stamped yet (step 7).
 
-### 7. Commit and Push (if applicable)
+### 7. Stamp the Curate Marker
 
-Same as reflect: if the knowledge directory is a separate repo, ask the user whether to commit and push the changes before finishing. If it's part of the project repo, follow the project's normal commit conventions and only commit if asked. Include the `_curated.md` marker update in this commit.
+Run `date -u +%Y-%m-%dT%H:%M:%SZ` and write its output, and nothing else, to `knowledge/_curated.md` (create it if missing). Use the actual command output, not a remembered or guessed timestamp. This is a reserved marker file per `KNOWLEDGE_ORG.md` — tooling (e.g. the status line) reads it to gauge drift since the last curate pass. Do this even on a run that found nothing to fix; a clean audit still resets the drift clock.
+
+Stamp and commit this **after** step 6's commit lands, as its own small trailing commit (same repo/push decision as step 6) — never bundled with the audit commit. The marker's timestamp has to sit strictly after everything this pass touched; if it shared a commit with the audit, or landed before it, the next drift check would immediately recount this session's own work as post-curate drift (`git log --since=<marker>` includes anything at or after that instant). A bare date had this same problem at whole-day granularity — see `status.md`; this ordering closes the narrower same-commit version of it.
 
 ### 8. Report Summary
 

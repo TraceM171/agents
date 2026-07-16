@@ -25,7 +25,7 @@ Subdirectories hold related files on a single topic. Do not nest deeper than one
 
 - `kebab-case.md` (e.g. `auth-pattern.md`, not `Auth_Pattern.md`).
 - Dated files use the format `YYYY-MM[-descriptor].md` (e.g. `audit-2026-06.md`, `incident-2025-11-payment-outage.md`).
-- Reserved names: `_basic.md` (index), `status.md` (current state), `_curated.md` (top level only — single-line date marker written by the curate skill, read by tooling; not one of the five kinds, exempt from kind-purity checks), `phases.md` (top level only — cross-domain ordered plan) and `plan.md` (domain-scoped ordered plan) — see "Open entries are pointers, not plans" below. Do not use these for other purposes.
+- Reserved names: `_basic.md` (index), `status.md` (current state), `_curated.md` (top level only — single-line UTC timestamp marker, `YYYY-MM-DDTHH:MM:SSZ`, written by the curate skill, read by tooling; not one of the five kinds, exempt from kind-purity checks), `phases.md` (top level only — cross-domain ordered plan) and `plan.md` (domain-scoped ordered plan) — see "Open entries are pointers, not plans" below. Do not use these for other purposes.
 - No version suffixes (`-v2`, `-final`, `-new`). If a file replaces another, delete the old one and let git history show the change.
 
 ## The five kinds of knowledge
