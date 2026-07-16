@@ -36,11 +36,15 @@ Update the knowledge tree inline, while working — the moment a fact is confirm
 
 **Never use external memory functions to remember things.** This includes the Claude Code memory tool, auto-managed `MEMORY.md` sidecars, or any other tool-level persistence layer. They fragment context, drift from the source of truth, and bypass the org rules.
 
-The knowledge tree (`knowledge/**`, governed by `KNOWLEDGE_ORG.md`) is the single source of truth. Anything worth remembering across sessions — facts, decisions, preferences, conventions, environment quirks, deployment state — goes into the appropriate knowledge file using the five kinds, the per-X convention, and the domain structure. Do not write a sidecar memory file, do not call a memory tool, do not duplicate facts into a tool-managed store. If a memory function offers to record something, write it into the knowledge tree instead and ignore the offer.
+The knowledge tree (`knowledge/**`, governed by the `knowledge-org` rules) is the single source of truth. Anything worth remembering across sessions — facts, decisions, preferences, conventions, environment quirks, deployment state — goes into the appropriate knowledge file using the six kinds, the per-X convention, and the domain structure. Do not write a sidecar memory file, do not call a memory tool, do not duplicate facts into a tool-managed store. If a memory function offers to record something, write it into the knowledge tree instead and ignore the offer.
 
 ## Editing knowledge — `KNOWLEDGE_ORG.md` is mandatory reading first
 
-**Read `KNOWLEDGE_ORG.md` in full before any edit to the knowledge tree.** Invoke the `knowledge-org` skill if available, otherwise read the file directly. This is mandatory, not optional. Triggers (any of these means you must read it first):
+**Read the knowledge-organization rules in full before any edit to the knowledge tree, by invoking the `knowledge-org` skill.** Mandatory, not optional.
+
+**Invoke the skill; do not hunt for the file.** On a plugin install no `KNOWLEDGE_ORG.md` exists in the project — it lives in the plugin's versioned cache, so guessing project paths fails every time and reading the cache path risks a stale copy after an upgrade. Read a file directly only on a manual install, where it is symlinked into the repo.
+
+Triggers (any of these means you must read the rules first):
 
 - Adding a new file
 - Moving, renaming, or deleting a file
@@ -48,15 +52,16 @@ The knowledge tree (`knowledge/**`, governed by `KNOWLEDGE_ORG.md`) is the singl
 - Changing the kind of a file (e.g. promoting status content into a model)
 - Appending a substantial new entry to an existing file — a new incident write-up, a new gotcha, a multi-line narrative, a growing Open/backlog entry. (A single-value edit — bumping a version, flipping a flag, fixing a typo — does not require a re-read.) This is the trigger most often missed: editing an *existing* file doesn't look like "adding" or "restructuring," but a paragraph-sized addition is exactly where duplication and kind-mixing creep in.
 
-Why hard: the rules (five kinds, per-X convention, no top-level cruft, no duplication, models contain no state / no history / no recipes) are what keep the tree navigable as it grows. Guessing the rules produces drift, and drift eventually forces a full rewrite. A 5-minute read of `KNOWLEDGE_ORG.md` prevents that.
+Why hard: the rules (six kinds, per-X convention, no top-level cruft, no duplication, models contain no state/history/rationale/recipes) keep the tree navigable as it grows. Guessing produces drift; drift eventually forces a full rewrite.
 
-Quick reminder (still read the full file before editing):
+Quick reminder (still read the full rules before editing):
 
-- Files are one of five kinds: **index** / **status** / **model** / **audit** / **pattern**.
+- Files are one of six kinds: **index** / **status** / **model** / **decision** / **audit** / **pattern**.
 - New files go into a domain subdirectory. Do not add top-level files.
 - The per-X convention: one file per running service, integration, environment, etc.
 - `.local/` is owner-specific. Test: *would a different owner of the same project need this?* If yes, it is not local.
-- Model files contain no dates, no state, no history, no recipes — link instead.
-- Status lives only in `status.md`. Audits are dated and append-only. Patterns are recipes, not design.
+- Model files contain no dates, state, history, rationale, recipes, or open questions — link instead.
+- **A choice still in force is a decision, not an audit.** `decision-<topic>.md` in the domain it governs — living, edited in place; holds the current why + rejected alternatives. Dated audits hold the deliberation, frozen. Writing a dated file to correct a fact in an older one means that fact belongs in a decision/model file.
+- Status lives only in `status.md`; entries ≤2 lines ending in a link, newest first. Audits are dated, append-only. Patterns are recipes, not design.
 - Link, do not restate. If a fact appears in two files, one of them is wrong.
-- Open/backlog entries are pointers too — ordered or cross-domain work goes in `phases.md`/`<domain>/plan.md`, not inline in `status.md`.
+- Open/backlog entries are pointers too — ordered or cross-domain work goes in `phases.md`/`<domain>/plan.md`, not inline.

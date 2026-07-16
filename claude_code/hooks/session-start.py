@@ -22,7 +22,13 @@ except OSError:
 # cap on hook additionalContext (code.claude.com/docs/en/hooks.md). Budget below leaves headroom
 # for the read-instruction line appended below and for any other context. This check runs every
 # session, so drift can't go unnoticed the way the knowledge-file truncation did.
-AGENTS_MD_BUDGET = 8000
+#
+# Raised 8000 -> 8500 in 0.1.14, deliberately: the Decision kind is a permanent sixth entry in the
+# taxonomy and its quick-reminder line has to live here. 8000 was set with no measurement behind it;
+# the only other thing in the payload is the ~150-char read-instruction line below, so the real
+# worst case is ~8660 against the 10,000 cap — still ~1.3k of margin. Keep this in sync with
+# AGENTS_MD_BUDGET in .githooks/pre-commit.
+AGENTS_MD_BUDGET = 8500
 context = [agents_md]
 if len(agents_md) > AGENTS_MD_BUDGET:
     context.append(

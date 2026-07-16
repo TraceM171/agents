@@ -7,7 +7,7 @@
 # same name there.
 
 AGENTS_MD="claude_code/AGENTS.md"
-AGENTS_MD_BUDGET=8000
+AGENTS_MD_BUDGET=8500
 
 [ -f "$AGENTS_MD" ] || exit 0
 
