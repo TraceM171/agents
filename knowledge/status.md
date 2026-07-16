@@ -1,18 +1,18 @@
 # Status — Current State
 
-**As of 2026-07-11.**
+**As of 2026-07-16.**
 
 ## Current version
 
-`0.1.13` (`claude_code/.claude-plugin/plugin.json`), not yet pushed to `origin/main`. Marketplace: `arwyl-lite-marketplace` → GitHub `TraceM171/arwyl-lite`.
+`0.1.13` (`claude_code/.claude-plugin/plugin.json`), pushed to `origin/main` (`b586a1f`). Marketplace: `arwyl-lite-marketplace` → GitHub `TraceM171/arwyl-lite`.
 
 (The push to get `0.1.7` out briefly failed — SSH agent couldn't sign with the hardware key, "agent refused operation" — retried clean once the key was touched; every version since has pushed normally.)
 
-This machine's marketplace checkout and plugin cache were last refreshed to `0.1.10` (`fd0c381`) via `/plugin marketplace update` + `/reload-plugins` on 2026-07-11 — now two versions stale against the `0.1.12` push above; needs another refresh cycle before this machine (or sanctum, which shares the cache) picks it up. Manual semver bump is still what actually invalidates a stale cached copy, even with the per-marketplace auto-update toggle on (cache is keyed by the `version` string).
+This machine's marketplace checkout and plugin cache were last refreshed to `0.1.10` (`fd0c381`) via `/plugin marketplace update` + `/reload-plugins` on 2026-07-11 — now three versions stale against the `0.1.13` push above; needs another refresh cycle before this machine (or sanctum, which shares the cache) picks it up. Manual semver bump is still what actually invalidates a stale cached copy, even with the per-marketplace auto-update toggle on (cache is keyed by the `version` string).
 
 ## Known consumers
 
-- **sanctum** — installed via the GitHub marketplace route, project-scope enabled (`.claude/settings.json`). Shares this machine's plugin cache (not a separate install) — still on the cached `0.1.10` until the next `/plugin marketplace update` picks up `0.1.12`. Last confirmed running the plugin during a 2026-07-09 `curate` pass, when the marketplace had just been migrated to this GitHub route.
+- **sanctum** — installed via the GitHub marketplace route, project-scope enabled (`.claude/settings.json`). Shares this machine's plugin cache (not a separate install) — still on the cached `0.1.10`; owner plans to run `/plugin marketplace update` there to pick up `0.1.13`. Last confirmed running the plugin during a 2026-07-15 `curate` pass (the one whose bare-date marker exposed the drift-counting bug fixed in `0.1.13` — see Recent changes).
 
 ## Recent changes
 
@@ -32,5 +32,5 @@ This machine's marketplace checkout and plugin cache were last refreshed to `0.1
 
 ## Open
 
-- Refresh this machine's marketplace cache to `0.1.12` (`/plugin marketplace update` + `/reload-plugins`), then confirm sanctum picks it up next session (shared cache).
+- Refresh this machine's marketplace cache to `0.1.13` (`/plugin marketplace update` + `/reload-plugins`) — owner doing this after the push; confirm sanctum picks it up next session (shared cache), and that its next `curate` pass rewrites `_curated.md` from the old bare date into the new timestamp format.
 - This `knowledge/` tree itself is brand new (scaffolded 2026-07-10) — expect a `reflect`/`curate` pass to reshape it as real work accumulates. No domains yet, by design.
